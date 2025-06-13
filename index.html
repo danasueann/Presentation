@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport"
+			content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/black.css">
+
+		<!-- Theme used for syntax highlighted code -->
+		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+	</head>
+
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section data-markdown>
+					<textarea data-template>
+					## Entwicklung eines Spiels
+
+					### für den
+					<!-- ![Gameboy Logo](img/gameboy.png) -->
+					![Gameboy Logo](img/gameboy-removebg-preview.png)
+					</textarea>
+				</section>
+				<section data-markdown>
+					<textarea data-template>
+						## Motivation
+						- **Lernen einer neuen Programmiersprache**
+						- **Hardwarenahes entwickeln**
+						- **Interesse an Retrospielen**
+					</textarea>
+				</section>
+
+				<section data-markdown>
+					<textarea data-template>
+						## Über den Gameboy Color
+						- **1998 von Nintendo veröffentlicht**
+						- **8-Bit Prozessor (8 MHz)**
+						- **32 KB RAM, 16KB VRAM**
+						- **160x144 Pixel Auflösung**
+					</textarea>
+				</section>
+
+				<section data-markdown>
+					<textarea data-template>
+						## Tools & Technologien für die Entwicklung
+
+						- **C** (Programmiersprache)
+						- **RGBDS** (Assembler)
+						- **GBDK** (GameBoy Development Kit)
+						- **Emulicious** (Emulator)
+						- **Gameboy Tile Designer** (Sprite-Editor)
+					</textarea>
+				</section>
+
+				<section data-markdown>
+					<textarea data-template>
+						## Schritt 1: Hello World auf dem Gameboy
+						- **Einrichten der Entwicklungsumgebung**
+						- **Erstellen eines einfachen C-Programms**
+						- **Kompilieren mit RGBDS**
+						- **Testen im Emulator BGB**
+					</textarea>
+				</section>
+
+				<section data-markdown>
+					<textarea data-template>
+						
+
+						```c
+						#include <gb/gb.h>
+						#include <stdio.h>
+
+						void main()
+						{
+							printf("Hello, Game");
+						}
+						```
+
+						```bash
+						c:\gbdk\bin\lcc -Wa-l -Wl-m -Wl-j -DUSE_SFR_FOR_REG -c -o build\main.o main.c
+						c:\gbdk\bin\lcc -Wa-l -Wl-m -Wl-j -DUSE_SFR_FOR_REG -o build\main.gb build\main.o
+						```
+						![Hello World](img/screenshot-helloworld.png)
+					</textarea>
+				</section>
+
+				<section data-markdown>
+					```json
+					launch.json um zu kompilieren und dann den Emulator
+					und Debugger über einen Shortcut zu starten
+
+					{
+					"version": "0.2.0",
+					"configurations": [
+					{
+					"type": "emulicious-debugger",
+					"request": "launch",
+					"name": "Launch in Emulicious",
+					"emuliciousPath": "${workspaceFolder}/emulicious/emulicious.exe",
+					//Startet direkt die Rom
+					"program": "${workspaceFolder}/build/main.gb",
+					"port": 58870,
+					"stopOnEntry": false,
+					//führt Bat-Datei aus, um zu kompilieren bevor der Emulicious gestartet
+					wird
+					"preLaunchTask": "run make.bat"
+					}
+					]
+					}
+
+					```
+
+				</section>
+
+				<section data-markdown>
+					<textarea data-template>
+					**Schritt 2: Das Gameboy-Joypad**
+
+					| Taste     | Hex   | Binär     |
+					|-----------|-------|-----------|
+					| J_A       | 0x01  | 00000001  |
+					| J_B       | 0x02  | 00000010  |
+					| J_SELECT  | 0x04  | 00000100  |
+					| J_START   | 0x08  | 00001000  |
+					| J_RIGHT   | 0x10  | 00010000  |
+					| J_LEFT    | 0x20  | 00100000  |
+					| J_UP      | 0x40  | 01000000  |
+					| J_DOWN    | 0x80  | 10000000  |
+
+					*Diese Werte werden verwendet, um die Eingaben des Gameboy-Joypads im Programm abzufragen.*
+
+					</textarea>
+				</section>
+				<section data-markdown>
+					<textarea data-template>
+						```C 
+							void main()
+							{
+								// Joypad-Buttons
+								// 8-Bit Integer -> joypad() returnt eine 8-Bitmaske und jede Taste entspricht einem Bit -> Wert wird
+								// in der Variable "buttons" gespeichert und kann abgefragt werden
+
+								UBYTE mButtons;
+
+								printf("Press any button!");
+
+								while (1)
+								{
+									mButtons = joypad();
+
+									if (mButtons & J_A)
+									{
+										printf("A \n");
+									}
+
+									if (mButtons & J_B)
+									{
+										printf("B \n");
+									}
+
+									if (mButtons & J_UP)
+									{
+										printf("UP \n");
+									}
+
+									if (mButtons & J_LEFT)
+									{
+										printf("LEFT \n");
+									}
+
+									if (mButtons & J_RIGHT)
+									{
+										printf("RIGHT \n");
+									}
+
+									if (mButtons & J_DOWN)
+									{
+										printf("DOWN \n");
+									}
+
+									if (mButtons & J_START)
+									{
+										printf("START \n");
+									}
+
+									if (mButtons & J_SELECT)
+									{
+										printf("SELECT \n");
+									}
+
+									while (mButtons = joypad());
+									// Warten, bis die Taste losgelassen wird
+									// Damit wird verhindert, dass die Taste mehrfach erkannt wird, solange sie gedrückt bleibt
+								}
+							}
+
+						```
+					</textarea>
+				</section>
+
+				<section data-markdown>
+					<textarea data-template>
+					**Schritt 3: Sprite erstellen und laden**
+
+					<div class="img-container">
+						<img src="img/GameboyTileDesigner.png" alt="Gameboy Tile Designer" style="max-width: 100%; height: auto;">
+						<img src="img/SpriteLoaded.png" alt="Gameboy Tile Designer 2" style="max-width: 100%; height: auto;">
+					</div>
+
+					</textarea>
+				</section>
+
+				<section data-markdown>
+					<textarea data-template>
+						```C
+						#include <gb/gb.h>
+						#include <stdio.h>
+						#include "PoodleSprite_1.h"
+
+						void main()
+						{
+							// Sprite Daten setzen (6 Tiles, 8x8 Pixel)
+							set_sprite_data(0, 6, PoodleSprite);
+							set_sprite_tile(0, 0); set_sprite_tile(1, 1);
+							set_sprite_tile(2, 2); set_sprite_tile(3, 3);
+							set_sprite_tile(4, 4); set_sprite_tile(5, 5);
+							
+							// Sprites positionieren (oben mittig)
+							move_sprite(0, 72, 40);   // oben links
+							move_sprite(1, 80, 40);   // oben rechts  
+							move_sprite(2, 72, 48);   // mitte links
+							move_sprite(3, 80, 48);   // mitte rechts
+							move_sprite(4, 72, 56);   // unten links
+							move_sprite(5, 80, 56);   // unten rechts
+							
+
+							SHOW_SPRITES;
+							DISPLAY_ON;
+						}
+						```
+					</textarea>
+
+			</div>
+		</div>
+
+		<style>
+/* custom.css */
+.reveal h2 {
+  color: #00ffff;
+  font-size: 1 em;
+}
+
+.reveal h3 {
+  color: #ffa500;
+  font-size: 0.9em;
+}
+
+.reveal pre code {
+  font-size: 0.8em;
+  line-height: 1.4em;
+  background-color: #111;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.reveal section img {
+  max-height: 300px;
+  display: block;
+  margin: 20px auto;
+}
+
+.reveal ul {
+  font-size: 0.8em;
+  line-height: 1.6em;
+}
+
+.reveal table {
+
+	font-size: 0.7em;
+  border-collapse: collapse;
+  width: 100%;
+  margin: 20px 0;
+}
+
+.img-container {
+	display: flex;
+
+
+}
+
+		</style>
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script>
+		// More info about initialization & config:
+		// - https://revealjs.com/initialization/
+		// - https://revealjs.com/config/
+		Reveal.initialize({
+			hash: true,
+
+			// Learn about plugins: https://revealjs.com/plugins/
+			plugins: [RevealMarkdown, RevealHighlight, RevealNotes]
+		});
+	</script>
+	</body>
+
+</html>
